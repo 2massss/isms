@@ -7,8 +7,10 @@ require_once "../config/db.php";
 
 $pageTitle = "User Management";
 
+// Search
 $search = trim($_GET["search"] ?? "");
 
+// Fetch users
 if ($search !== "") {
 
     $stmt = $conn->prepare(
@@ -18,7 +20,7 @@ if ($search !== "") {
          ORDER BY id DESC"
     );
 
-    $term = "%$search%";
+    $term = "%" . $search . "%";
     $stmt->bind_param("ss", $term, $term);
     $stmt->execute();
 
@@ -36,9 +38,13 @@ if ($search !== "") {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>User Management | ISMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title><?= htmlspecialchars($pageTitle) ?> | ISMS</title>
+
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
@@ -47,7 +53,30 @@ if ($search !== "") {
 <div class="content">
 
     <h1>User Management</h1>
+
     <p>Manage system administrators and staff accounts.</p>
+
+    <!-- SUCCESS MESSAGES -->
+
+    <?php if (isset($_GET["added"])): ?>
+        <div class="alert alert-success">
+            User created successfully!
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET["updated"])): ?>
+        <div class="alert alert-success">
+            User updated successfully!
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET["deleted"])): ?>
+        <div class="alert alert-success">
+            User deleted successfully!
+        </div>
+    <?php endif; ?>
+
+    <!-- ADD USER -->
 
     <a href="user_add.php" class="btn">
         + Add User
@@ -55,17 +84,32 @@ if ($search !== "") {
 
     <br><br>
 
+    <!-- SEARCH -->
+
     <form method="GET">
+
         <input
             type="text"
             name="search"
             placeholder="Search name or username"
             value="<?= htmlspecialchars($search) ?>"
         >
-        <button class="btn" type="submit">Search</button>
+
+        <br><br>
+
+        <button type="submit" class="btn">
+            Search
+        </button>
+
+        <a href="users.php" class="btn btn-danger">
+            Clear
+        </a>
+
     </form>
 
     <br>
+
+    <!-- USER TABLE -->
 
     <div class="table-container">
 
@@ -89,7 +133,10 @@ if ($search !== "") {
                     <?php while ($user = $users->fetch_assoc()): ?>
 
                         <tr>
-                            <td><?= (int)$user["id"] ?></td>
+
+                            <td>
+                                <?= (int)$user["id"] ?>
+                            </td>
 
                             <td>
                                 <?= htmlspecialchars($user["name"]) ?>
@@ -108,10 +155,42 @@ if ($search !== "") {
                             </td>
 
                             <td>
-                                <a href="user_edit.php?id=<?= (int)$user["id"] ?>">
+
+                                <a
+                                    href="user_edit.php?id=<?= (int)$user["id"] ?>"
+                                    class="btn"
+                                >
                                     Edit
                                 </a>
+
+                                <?php if ((int)$user["id"] !== (int)$_SESSION["id"]): ?>
+
+                                    <form
+                                        action="user_del.php"
+                                        method="POST"
+                                        style="display:inline"
+                                        onsubmit="return confirm('Are you sure you want to delete this user?');"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="id"
+                                            value="<?= (int)$user["id"] ?>"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger"
+                                        >
+                                            Delete
+                                        </button>
+
+                                    </form>
+
+                                <?php endif; ?>
+
                             </td>
+
                         </tr>
 
                     <?php endwhile; ?>
@@ -119,7 +198,9 @@ if ($search !== "") {
                 <?php else: ?>
 
                     <tr>
-                        <td colspan="6">No users found.</td>
+                        <td colspan="6">
+                            No users found.
+                        </td>
                     </tr>
 
                 <?php endif; ?>
