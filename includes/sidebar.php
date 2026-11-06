@@ -17,6 +17,8 @@ $role = $_SESSION["role"] ?? "";
         <a href="requests.php">Supply Requests</a>
         <a href="reports.php">Reports</a>
         <a href="logs.php">Activity Logs</a>
+        <a href="categories.php">Categories</a>
+        <a href="products.php">Products</a>
 
     <?php elseif ($role === "staff"): ?>
 
